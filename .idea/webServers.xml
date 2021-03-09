@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="59857388-4e9c-4eb9-a0c5-fb350b90990a" name="sakurag04_river_seg" url="http://sakurag04.cw503.net">
+        <fileTransfer host="sakurag04.cw503.net" port="22" privateKey="$USER_HOME$/.ssh/id_rsa_sakura" rootFolder="/home/guo/Work/river_mapping" accessType="SFTP" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
