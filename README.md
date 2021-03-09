@@ -1,11 +1,11 @@
 # river-mapping
 
-## Prerequests
+## Requirements
 
 ## Training
 
 ## Testing
 
-## Trained model
+## Trianed Model
 
-## Inference
+## Inference 
