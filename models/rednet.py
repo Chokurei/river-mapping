@@ -1,14 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Oct  4 13:08:39 2018
-
-@author: kaku
-
-RedNet:    
-https://arxiv.org/pdf/1603.09056.pdf
-Image Restoration Using Very Deep Convolutional Encoder-Decoder Networks with Symmetric Skip Connections
-https://medium.com/@sunnerli/simple-introduction-about-hourglass-like-model-11ee7c30138
+  @Email:  guo@locationmind.com
+  @Copyright: guo-zhiling
+  @License: MIT
 """
 
 import sys

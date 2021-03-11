@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Sep 27 11:53:41 2018
-
-@author: kaku
-
-DeconvNet:
-https://arxiv.org/pdf/1505.04366.pdf
+  @Email:  guo@locationmind.com
+  @Copyright: guo-zhiling
+  @License: MIT
 """
 
 import sys

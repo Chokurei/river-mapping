@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sun Dec 2 19:29:18 2017
-
-@author: Go-hiroaki
-
-network models in pytorch
+  @Email:  guo@locationmind.com
+  @Copyright: guo-zhiling
+  @License: MIT
 """
 import sys
 sys.path.append('./models')

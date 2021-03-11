@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 """
-  @Email:  guangmingwu2010@gmail.com
-  @Copyright: go-hiroaki
+  @Email:  guo@locationmind.com
+  @Copyright: guo-zhiling
   @License: MIT
 """
 from utils.datasets import *

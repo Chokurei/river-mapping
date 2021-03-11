@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 """
-  @CreateTime:   2018-01-02T20:57:09+09:00
-  @Email:  guangmingwu2010@gmail.com
-  @Copyright: go-hiroaki
+  @Email:  guo@locationmind.com
+  @Copyright: guo-zhiling
   @License: MIT
 """
 import os

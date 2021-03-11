@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sat Mar 16 12:04:00 2019
-
-@author: kaku
+  @Email:  guo@locationmind.com
+  @Copyright: guo-zhiling
+  @License: MIT
 """
 
 import numpy as np

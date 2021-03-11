@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Oct  5 10:31:54 2018
-
-@author: kaku
-
-Wu's code is based on U-Net concatenate
-The original paper is based on Residule-Net
-https://medium.com/@jonathan_hui/understanding-feature-pyramid-networks-for-object-detection-fpn-45b227b9106c
+  @Email:  guo@locationmind.com
+  @Copyright: guo-zhiling
+  @License: MIT
 """
 import sys
 sys.path.append('./models')
