@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 """
-  @CreateTime:   2018-01-26T16:50:00+09:00
-  @Email:  guangmingwu2010@gmail.com
-  @Copyright: go-hiroaki
+  @Email:  guo@locationmind.com
+  @Copyright: guo-zhiling
   @License: MIT
 """
+
 import os, glob
 import argparse
 import torch
@@ -15,12 +15,8 @@ from utils import metrics
 from skimage.io import imsave, imread
 import json
 import sys
-# print(sys.path)
-# sys.path.append('/home/guo/anaconda3/envs/')
 sys.path.append('/usr/lib/python3/dist-packages/')
-# sys.path.append('/usr/lib/python3/dist-packages/osgeo')
-# sys.path.append('/home/guo/anaconda3/lib/python3.6/site-packages/imageio/plugins')
-# import gdal
+import gdal
 
 from skimage.morphology import medial_axis, skeletonize
 from skimage import feature
@@ -37,8 +33,10 @@ Result_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'result_pr
 Utils_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'utils')
 Log_name = 'area_binary_log.csv'
 
-
 def rescale(img):
+    """
+    rescale image
+    """
     percent = 2
     pLow, pHigh = np.percentile(img[img>0], (percent, 100-percent))
     img_rescaled = exposure.rescale_intensity(img, in_range=(pLow, pHigh))
@@ -49,7 +47,6 @@ def load_recent_checkpoint(checkpoint_dir):
     latest_model = max(list_of_models, key=os.path.getctime)
     model_name = os.path.basename(latest_model)
     return model_name
-
 
 def save_log(log_results):
     columns = ['image', 'model',
@@ -70,42 +67,52 @@ def save_log(log_results):
     logs.to_csv("{}/logs/{}".format(Result_DIR, Log_name), index=False, float_format='%.3f')
 
 
-# def geo_projection(input, output):
-#     dataset = gdal.Open(input)
-#     if dataset is None:
-#         print('Unable to open', input, 'for reading')
-#         sys.exit(1)
-#
-#     projection = dataset.GetProjection()
-#     geotransform = dataset.GetGeoTransform()
-#
-#     if projection is None and geotransform is None:
-#         print('No projection or geotransform found on file' + input)
-#         sys.exit(1)
-#
-#     dataset2 = gdal.Open(output, gdal.GA_Update)
-#
-#     if dataset2 is None:
-#         print('Unable to open', output, 'for writing')
-#         sys.exit(1)
-#
-#     if geotransform is not None:
-#         dataset2.SetGeoTransform(geotransform)
-#
-#     if projection is not None:
-#         dataset2.SetProjection(projection)
+def geo_projection(input, output):
+    """
+    project georeference from input to output
+    parameters:
+    -----------
+    input : str
+        input geotif path
+    output : str
+        output tif path
+    """
+    dataset = gdal.Open(input)
+    if dataset is None:
+        print('Unable to open', input, 'for reading')
+        sys.exit(1)
 
-def get_results_all():
+    projection = dataset.GetProjection()
+    geotransform = dataset.GetGeoTransform()
+
+    if projection is None and geotransform is None:
+        print('No projection or geotransform found on file' + input)
+        sys.exit(1)
+
+    dataset2 = gdal.Open(output, gdal.GA_Update)
+
+    if dataset2 is None:
+        print('Unable to open', output, 'for writing')
+        sys.exit(1)
+
+    if geotransform is not None:
+        dataset2.SetGeoTransform(geotransform)
+
+    if projection is not None:
+        dataset2.SetProjection(projection)
+
+def get_results_all(seg_dir):
     """
     get results including width, centerline, model information, etc.
+    parameters:
+    -----------
+    seg_dir : str
+        segmentation results directory
     """
-    result_root = Result_DIR
-    # target_name = 'LandsatArchive_LE07_SLC-off'
-    # target_result_dir = os.path.join(result_root, target_name)
-    seg_dir = os.path.join(result_root, 'area-binary')
+
+    result_root = os.path.dirname(seg_dir)
     seg_names = os.listdir(seg_dir)
 
-    # result_root = '/'.join(seg_dir.split('/')[:-1])
     delineate_norm_dir = os.path.join(result_root, 'delineate_norm')
     delineate_dir = os.path.join(result_root, 'delineate')
     width_dir = os.path.join(result_root, 'width')
@@ -143,24 +150,22 @@ def get_results_all():
         img = img // 255
         skel, distance = medial_axis(img, return_distance=True)
 
-        # skeleton = skeletonize(img)
         dist_on_skel = distance * skel
-        # edges2 = feature.canny(img*255, sigma=3)
         edges2 = feature.canny(img * 255)
 
         # width norm
         dist_norm = (dist_on_skel - np.min(dist_on_skel)) / (np.max(dist_on_skel) - np.min(dist_on_skel))
         delineate_norm = np.clip(((edges2 + dist_norm) * 255).astype(np.uint8), 0, 255)
         imsave(os.path.join(delineate_norm_dir, img_name), delineate_norm)
-        # geo_projection(img_path, os.path.join(delineate_norm_dir, img_name))
+        geo_projection(img_path, os.path.join(delineate_norm_dir, img_name))
 
         width = (dist_on_skel * 2).astype(np.int8)
         imsave(os.path.join(width_dir, img_name), width)
-        # geo_projection(img_path, os.path.join(width_dir, img_name))
+        geo_projection(img_path, os.path.join(width_dir, img_name))
 
         delineate = np.clip((edges2 * 255 + width).astype(np.uint8), 0, 255)
         imsave(os.path.join(delineate_dir, img_name), delineate)
-        # geo_projection(img_path, os.path.join(delineate_dir, img_name))
+        geo_projection(img_path, os.path.join(delineate_dir, img_name))
 
     try:
         model_names = list(set(model_names))
@@ -170,14 +175,7 @@ def get_results_all():
     except:
         pass
 
-
 def main(args):
-    """
-    Multi-house comparison using different methods
-      args:
-        .checkpoints: pretrained pytorch model
-        .data: data path for prediction
-    """
     Data_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src', args.data)
     Anno_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src', args.data + '_anno')
 
@@ -219,60 +217,19 @@ def main(args):
         img_path = os.path.join(Data_DIR, img_name)
         src_img = imread(img_path)
 
-        if not args.aster and args.objective == 'river':
-            if len(landsat_idx) == 1:
-                if ('4' in landsat_idx) or ('5' in landsat_idx) or ('6' in landsat_idx) or ('7' in landsat_idx):
-                    src_img_4 = np.expand_dims(src_img[:, :, 3], -1)
-                    src_img_5 = np.expand_dims(src_img[:, :, 4], -1)
-                    src_img_3 = np.expand_dims(src_img[:, :, 2], -1)
+        if args.aster or args.objective == 'veg':
+            src_img_nir = np.expand_dims(src_img[:, :, 3], -1)
+            src_img_red = np.expand_dims(src_img[:, :, 2], -1)
+            src_img_green = np.expand_dims(src_img[:, :, 1], -1)
+            img_new = np.concatenate((src_img_nir, src_img_red, src_img_green), -1)
 
-                    img_new = np.concatenate((src_img_4, src_img_5, src_img_3), -1)
-                    src_img = rescale(img_new)
-                else:
-                    # landsat 8
-                    src_img_5 = np.expand_dims(src_img[:, :, 4], -1)
-                    src_img_6 = np.expand_dims(src_img[:, :, 5], -1)
-                    src_img_4 = np.expand_dims(src_img[:, :, 3], -1)
-
-                    img_new = np.concatenate((src_img_5, src_img_6, src_img_4), -1)
-                    src_img = rescale(img_new)
-            else:
-                # ['7', '8'], based on 7 as well
-                # ['5', '7']
-                # ['5', '4']
-                src_img_4 = np.expand_dims(src_img[:, :, 3], -1)
-                src_img_5 = np.expand_dims(src_img[:, :, 4], -1)
-                src_img_3 = np.expand_dims(src_img[:, :, 2], -1)
-
-                img_new = np.concatenate((src_img_4, src_img_5, src_img_3), -1)
-                src_img = rescale(img_new)
         else:
-            if len(landsat_idx) == 1:
-                if ('4' in landsat_idx) or ('5' in landsat_idx) or ('6' in landsat_idx) or ('7' in landsat_idx):
-                    src_img_4 = np.expand_dims(src_img[:, :, 3], -1)
-                    src_img_3 = np.expand_dims(src_img[:, :, 2], -1)
-                    src_img_2 = np.expand_dims(src_img[:, :, 1], -1)
+            src_img_nir = np.expand_dims(src_img[:, :, 3], -1)
+            src_img_swir = np.expand_dims(src_img[:, :, 4], -1)
+            src_img_red = np.expand_dims(src_img[:, :, 2], -1)
+            img_new = np.concatenate((src_img_nir, src_img_swir, src_img_red), -1)
 
-                    img_new = np.concatenate((src_img_4, src_img_3, src_img_2), -1)
-                    src_img = rescale(img_new)
-                else:
-                    # landsat 8
-                    src_img_5 = np.expand_dims(src_img[:, :, 4], -1)
-                    src_img_4 = np.expand_dims(src_img[:, :, 3], -1)
-                    src_img_3 = np.expand_dims(src_img[:, :, 2], -1)
-
-                    img_new = np.concatenate((src_img_5, src_img_4, src_img_3), -1)
-                    src_img = rescale(img_new)
-            else:
-                # ['7', '8'], based on 7 as well
-                # ['5', '7']
-                # ['5', '4']
-                src_img_4 = np.expand_dims(src_img[:, :, 3], -1)
-                src_img_3 = np.expand_dims(src_img[:, :, 2], -1)
-                src_img_2 = np.expand_dims(src_img[:, :, 1], -1)
-
-                img_new = np.concatenate((src_img_4, src_img_3, src_img_2), -1)
-                src_img = rescale(img_new)
+        src_img = rescale(img_new)
 
         if args.border_remain:
             if len(src_img.shape) == 2:
@@ -365,20 +322,8 @@ def main(args):
             if args.border_remain:
                 result_img = result_img[:_img_rows, :_img_cols]
 
-            if args.centerline:
-                image = result_img // 255
-                skeleton = skeletonize(image)
-                centerline_name = "{}_area_centerline_{}.jpg".format(
-                    os.path.splitext(img_name)[0], checkpoint.strip('.pth'))
-
-                imsave(os.path.join(Result_DIR, 'area-binary', centerline_name), skeleton*255)
-
             imsave(os.path.join(Result_DIR, 'area-binary', name), result_img)
             print("Saving {} ...".format(name))
-
-            # if args.georef:
-                # geo_projection(img_path, os.path.join(Result_DIR, 'area-binary', name))
-
 
             if ANNO:
                 tar_img = imread(os.path.join(Anno_DIR, anno_name))
@@ -386,14 +331,10 @@ def main(args):
 
                 if args.border_remain:
                     _tar_img_dtype = tar_img.dtype
-                    # if len(tar_img.shape) == 2:
-                    #     tar_img_new = np.empty((_img_rows_new, _img_cols_new), _tar_img_dtype)
                     if len(tar_img.shape) == 2:
                         tar_img_new = np.empty((_img_rows, _img_cols), _tar_img_dtype)
 
                     else:
-                        # _tar_img_ch = tar_img.shape[-1]
-                        # tar_img_new = np.empty((_img_rows_new, _img_cols_new, _tar_img_ch), _tar_img_dtype)
                         _tar_img_ch = tar_img.shape[-1]
                         tar_img_new = np.empty((_img_rows, _img_cols, _tar_img_ch), _tar_img_dtype)
 
@@ -444,14 +385,13 @@ def main(args):
 
                 imsave(os.path.join(Result_DIR, 'area-binary', name), result_mask_img)
 
-                # if args.georef:
-                    # geo_projection(img_path, os.path.join(Result_DIR, 'area-binary', name))
+                if args.georef:
+                    geo_projection(img_path, os.path.join(Result_DIR, 'area-binary', name))
 
                 print("Saving {} ...".format(name))
 
     if args.all_results:
-        get_results_all()
-
+        get_results_all(os.path.join(Result_DIR, 'area-binary'))
 
 if __name__ == "__main__":
     # ====================== parameter initialization ======================= #
@@ -478,14 +418,10 @@ if __name__ == "__main__":
                         help='landsat data mode')
     parser.add_argument('-landsat_idx', type=str, default="4 5 6 7 8",
                         help='landsat index')
-    parser.add_argument('-centerline', type=lambda x: (str(x).lower() == 'true'),
-                        default=False, help='get centerline or not')
     parser.add_argument('-test_all', type=lambda x: (str(x).lower() == 'true'),
                         default=True, help='test all files?')
     parser.add_argument('-img_names', type=str, default=[
-        # '09KD993_clip.tif',
         '09KD993_small.tif',
-        # 'shinjuku-std.tif',
     ],
                         help='data dirs for processing')
     parser.add_argument('-img_rows', type=int, default=224,
