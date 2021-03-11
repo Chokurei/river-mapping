@@ -56,9 +56,10 @@ Trial use trained model. Obtained segmentation, skeleton, width, and model info 
 ```
 python pridict.py -data data-in-src -objective river -checkpoints checkpoint-name
 ```
-## Inference 
+## Supplementary 
 * project management
 <img width="1073" alt="Screen Shot 2021-03-11 at 21 48 57" src="https://user-images.githubusercontent.com/16301109/110789789-9c6bcf00-82b3-11eb-847d-83ad28a6eba0.png">
+
 * works
 <img width="933" alt="Screen Shot 2021-03-11 at 21 49 44" src="https://user-images.githubusercontent.com/16301109/110789887-b73e4380-82b3-11eb-8ed0-94516cd1ca04.png">
 
